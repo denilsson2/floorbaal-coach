@@ -1,0 +1,55 @@
+## Build results
+bin/
+obj/
+*.user
+*.suo
+*.userprefs
+*.pidb
+*.usertasks
+*.userproperties
+.DS_Store
+
+## Visual Studio
+.vs/
+*.sln.ide/
+
+## Rider
+.idea/
+*.sln.iml
+
+## Database
+*.db
+*.db-shm
+*.db-wal
+
+## Compiled files
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+## Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+
+## NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.fragment.lock.json
+
+## Temporary files
+*.tmp
+*.temp
+*~
+*.swp
+*.swo

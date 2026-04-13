@@ -1,0 +1,693 @@
+<UserControl x:Class="FloorballCoach.Views.LineupView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FloorballCoach.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="750" d:DesignWidth="1400">
+
+    <UserControl.Resources>
+        <!-- Player Card Style -->
+        <Style x:Key="PlayerCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#2196F3"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="MinWidth" Value="120"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <!-- Drop Zone Style -->
+        <Style x:Key="DropZoneStyle" TargetType="Border">
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="MinWidth" Value="140"/>
+            <Setter Property="MinHeight" Value="80"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+
+        <!-- Line Header Style -->
+        <Style x:Key="LineHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#1565C0"/>
+            <Setter Property="Margin" Value="0,10,0,10"/>
+        </Style>
+
+        <!-- Button Style -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <!-- Filter Button Style -->
+        <Style x:Key="FilterButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#EEEEEE"/>
+            <Setter Property="Foreground" Value="#333333"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#CCCCCC"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+        </Style>
+
+        <!-- Active Filter Button Style -->
+        <Style x:Key="ActiveFilterButtonStyle" TargetType="Button" BasedOn="{StaticResource FilterButtonStyle}">
+            <Setter Property="Background" Value="#2196F3"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#1976D2"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Panel - Available Players -->
+        <Border Grid.Column="0" 
+                Background="#F5F5F5" 
+                BorderBrush="#CCCCCC" 
+                BorderThickness="0,0,1,0"
+                Padding="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Text="Available Players"
+                           FontSize="20"
+                           FontWeight="Bold"
+                           Margin="0,0,0,15"/>
+
+                <!-- Position Filter Buttons -->
+                <StackPanel Grid.Row="1" Margin="0,0,0,10">
+                    <TextBlock Text="Filter by Position:" 
+                               FontSize="12" 
+                               FontWeight="SemiBold"
+                               Foreground="#666"
+                               Margin="0,0,0,5"/>
+                    
+                    <Button Content="All" 
+                            Click="FilterButton_Click"
+                            Tag="All"
+                            Style="{StaticResource FilterButtonStyle}"
+                            Margin="0,2,0,2"/>
+                    
+                    <Button Content="?? Goalkeepers" 
+                            Click="FilterButton_Click"
+                            Tag="Goalkeeper"
+                            Style="{StaticResource FilterButtonStyle}"
+                            Margin="0,2,0,2"/>
+                    
+                    <Button Content="??? Defenders" 
+                            Click="FilterButton_Click"
+                            Tag="Defender"
+                            Style="{StaticResource FilterButtonStyle}"
+                            Margin="0,2,0,2"/>
+                    
+                    <Button Content="? Centers" 
+                            Click="FilterButton_Click"
+                            Tag="Center"
+                            Style="{StaticResource FilterButtonStyle}"
+                            Margin="0,2,0,2"/>
+                    
+                    <Button Content="? Forwards" 
+                            Click="FilterButton_Click"
+                            Tag="Forward"
+                            Style="{StaticResource FilterButtonStyle}"
+                            Margin="0,2,0,2"/>
+                </StackPanel>
+
+                <TextBox Grid.Row="2"
+                         Text="Search..."
+                         Padding="8"
+                         Margin="0,0,0,10"/>
+
+                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding AvailablePlayers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource PlayerCardStyle}"
+                                        AllowDrop="False"
+                                        MouseMove="PlayerCard_MouseMove">
+                                    <StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <Border Background="#1565C0" 
+                                                    CornerRadius="3" 
+                                                    Padding="5,2"
+                                                    Margin="0,0,8,0">
+                                                <TextBlock Text="{Binding JerseyNumber}" 
+                                                           Foreground="White" 
+                                                           FontWeight="Bold"
+                                                           FontSize="12"/>
+                                            </Border>
+                                            <TextBlock Text="{Binding FullName}" 
+                                                       FontWeight="SemiBold"
+                                                       VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding Position}" 
+                                                   FontSize="11"
+                                                   Foreground="#666666"
+                                                   Margin="0,3,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- Right Panel - Lineup -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto" Padding="20">
+            <StackPanel>
+                <!-- Header -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                    <TextBlock Text="Match Lineup" 
+                               FontSize="28" 
+                               FontWeight="Bold"
+                               VerticalAlignment="Center"/>
+                    <Button Content="Clear Lineup" 
+                            Command="{Binding ClearLineupCommand}"
+                            Style="{StaticResource ActionButtonStyle}"
+                            Background="#F44336"
+                            Margin="20,0,0,0"/>
+                    <Button Content="Save Lineup" 
+                            Command="{Binding SaveLineupCommand}"
+                            Style="{StaticResource ActionButtonStyle}"
+                            Background="#4CAF50"/>
+                </StackPanel>
+
+                <!-- Goalkeepers -->
+                <TextBlock Text="Goalkeepers" Style="{StaticResource LineHeaderStyle}"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="Starting" FontSize="12" Foreground="#666" Margin="0,0,0,5"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="StartingGoalkeeper">
+                            <ContentControl Content="{Binding StartingGoalkeeper}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                            <TextBlock Text="{Binding Position}" FontSize="11" Foreground="#666" TextAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+                    
+                    <StackPanel>
+                        <TextBlock Text="Backup" FontSize="12" Foreground="#666" Margin="0,0,0,5"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="BackupGoalkeeper">
+                            <ContentControl Content="{Binding BackupGoalkeeper}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                            <TextBlock Text="{Binding Position}" FontSize="11" Foreground="#666" TextAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Line 1 -->
+                <TextBlock Text="Line 1" Style="{StaticResource LineHeaderStyle}"/>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left Defender -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="LD" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line1LeftBack">
+                            <ContentControl Content="{Binding Line1LeftBack}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Right Defender -->
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="RD" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line1RightBack">
+                            <ContentControl Content="{Binding Line1RightBack}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Center -->
+                    <StackPanel Grid.Column="3">
+                        <TextBlock Text="Center" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line1Center">
+                            <ContentControl Content="{Binding Line1Center}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Left Forward -->
+                    <StackPanel Grid.Column="5">
+                        <TextBlock Text="LF" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line1LeftForward">
+                            <ContentControl Content="{Binding Line1LeftForward}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Right Forward -->
+                    <StackPanel Grid.Column="6">
+                        <TextBlock Text="RF" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line1RightForward">
+                            <ContentControl Content="{Binding Line1RightForward}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Line 2 -->
+                <TextBlock Text="Line 2" Style="{StaticResource LineHeaderStyle}"/>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left Defender -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="LD" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line2LeftBack">
+                            <ContentControl Content="{Binding Line2LeftBack}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Right Defender -->
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="RD" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line2RightBack">
+                            <ContentControl Content="{Binding Line2RightBack}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Center -->
+                    <StackPanel Grid.Column="3">
+                        <TextBlock Text="Center" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line2Center">
+                            <ContentControl Content="{Binding Line2Center}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Left Forward -->
+                    <StackPanel Grid.Column="5">
+                        <TextBlock Text="LF" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line2LeftForward">
+                            <ContentControl Content="{Binding Line2LeftForward}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Right Forward -->
+                    <StackPanel Grid.Column="6">
+                        <TextBlock Text="RF" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line2RightForward">
+                            <ContentControl Content="{Binding Line2RightForward}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Line 3 -->
+                <TextBlock Text="Line 3" Style="{StaticResource LineHeaderStyle}"/>
+                <Grid Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="20"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Left Defender -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="LD" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line3LeftBack">
+                            <ContentControl Content="{Binding Line3LeftBack}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Right Defender -->
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="RD" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line3RightBack">
+                            <ContentControl Content="{Binding Line3RightBack}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Center -->
+                    <StackPanel Grid.Column="3">
+                        <TextBlock Text="Center" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line3Center">
+                            <ContentControl Content="{Binding Line3Center}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Left Forward -->
+                    <StackPanel Grid.Column="5">
+                        <TextBlock Text="LF" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line3LeftForward">
+                            <ContentControl Content="{Binding Line3LeftForward}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Right Forward -->
+                    <StackPanel Grid.Column="6">
+                        <TextBlock Text="RF" FontSize="12" Foreground="#666" Margin="0,0,0,5" TextAlignment="Center"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Line3RightForward">
+                            <ContentControl Content="{Binding Line3RightForward}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Bench Players -->
+                <TextBlock Text="Bench" Style="{StaticResource LineHeaderStyle}"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="Bench 1" FontSize="12" Foreground="#666" Margin="0,0,0,5"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Bench1">
+                            <ContentControl Content="{Binding Bench1}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                            <TextBlock Text="{Binding Position}" FontSize="11" Foreground="#666" TextAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+                    
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="Bench 2" FontSize="12" Foreground="#666" Margin="0,0,0,5"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Bench2">
+                            <ContentControl Content="{Binding Bench2}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                            <TextBlock Text="{Binding Position}" FontSize="11" Foreground="#666" TextAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+                    
+                    <StackPanel>
+                        <TextBlock Text="Bench 3" FontSize="12" Foreground="#666" Margin="0,0,0,5"/>
+                        <Border Style="{StaticResource DropZoneStyle}"
+                                AllowDrop="True"
+                                Drop="DropZone_Drop"
+                                DragEnter="DropZone_DragEnter"
+                                DragLeave="DropZone_DragLeave" MouseRightButtonDown="DropZone_RightClick"
+                                Tag="Bench3">
+                            <ContentControl Content="{Binding Bench3}">
+                                <ContentControl.ContentTemplate>
+                                    <DataTemplate>
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding FullName}" FontWeight="Bold" TextAlignment="Center" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding JerseyNumber}" TextAlignment="Center" FontSize="20" Foreground="#1565C0"/>
+                                            <TextBlock Text="{Binding Position}" FontSize="11" Foreground="#666" TextAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.ContentTemplate>
+                            </ContentControl>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
+
