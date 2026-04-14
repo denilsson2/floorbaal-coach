@@ -97,8 +97,7 @@
                         <TextBlock Text="{Binding SelectedTeam.ShortName, StringFormat='({0})'}" 
                                   FontSize="14"
                                   Foreground="#666"
-                                  Margin="0,5,0,0"
-                                  Visibility="{Binding SelectedTeam.ShortName, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                  Margin="0,5,0,0"/>
                     </StackPanel>
                 </Border>
             </StackPanel>
@@ -142,8 +141,7 @@
                                             <TextBlock Text="{Binding ShortName, StringFormat='Kortnamn: {0}'}" 
                                                       FontSize="12" 
                                                       Foreground="#666"
-                                                      Margin="0,5,0,0"
-                                                      Visibility="{Binding ShortName, Converter={StaticResource NullToVisibilityConverter}}"/>
+                                                      Margin="0,5,0,0"/>
                                             <TextBlock Text="{Binding CreatedDate, StringFormat='Skapat: {0:yyyy-MM-dd}'}" 
                                                       FontSize="12" 
                                                       Foreground="#999"

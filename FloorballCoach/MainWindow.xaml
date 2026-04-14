@@ -6,11 +6,15 @@
         xmlns:local="clr-namespace:FloorballCoach"
         xmlns:views="clr-namespace:FloorballCoach.Views"
         xmlns:vm="clr-namespace:FloorballCoach.ViewModels"
+        xmlns:helpers="clr-namespace:FloorballCoach.Helpers"
         mc:Ignorable="d"
         Title="Floorball Coach" Height="800" Width="1400"
         WindowStartupLocation="CenterScreen">
     
     <Window.Resources>
+        <!-- Converters -->
+        <helpers:StringToVisibilityConverter x:Key="StringToVisibilityConverter"/>
+        
         <!-- DataTemplates for ViewModels -->
         <DataTemplate DataType="{x:Type vm:TeamManagementViewModel}">
             <views:TeamManagementView/>
@@ -23,6 +27,9 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:LineupViewModel}">
             <views:LineupView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:BackupViewModel}">
+            <views:BackupView/>
         </DataTemplate>
 
         <!-- Button Style -->
@@ -86,6 +93,10 @@
                 <Button Content="Uppställning" 
                         Style="{StaticResource NavigationButtonStyle}"
                         Command="{Binding ShowLineupCommand}"/>
+                
+                <Button Content="Backup" 
+                        Style="{StaticResource NavigationButtonStyle}"
+                        Command="{Binding ShowBackupCommand}"/>
             </StackPanel>
         </Border>
 

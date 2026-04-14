@@ -56,13 +56,15 @@ public partial class App : Application
 
         // Register services
         services.AddTransient<DatabaseSeeder>();
+        services.AddScoped<BackupService>();
 
         // Register ViewModels
-        services.AddTransient<MainViewModel>();
-        services.AddTransient<TeamManagementViewModel>();
-        services.AddTransient<PlayerDatabaseViewModel>();
-        services.AddTransient<RosterViewModel>();
-        services.AddTransient<LineupViewModel>();
+        services.AddScoped<TeamManagementViewModel>();
+        services.AddScoped<PlayerDatabaseViewModel>();
+        services.AddScoped<RosterViewModel>();
+        services.AddScoped<LineupViewModel>();
+        services.AddScoped<BackupViewModel>();
+        services.AddScoped<MainViewModel>();
 
         // Register MainWindow
         services.AddSingleton<MainWindow>();

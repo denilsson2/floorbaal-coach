@@ -12,18 +12,19 @@ namespace FloorballCoach.ViewModels
     public class MainViewModel : ViewModelBase
     {
         private ViewModelBase _currentViewModel;
-        private readonly IPlayerRepository _playerRepository;
-        private readonly ITeamRepository _teamRepository;
 
-        public MainViewModel(IPlayerRepository playerRepository, ITeamRepository teamRepository)
+        public MainViewModel(
+            TeamManagementViewModel teamManagementViewModel,
+            PlayerDatabaseViewModel playerDatabaseViewModel,
+            RosterViewModel rosterViewModel,
+            LineupViewModel lineupViewModel,
+            BackupViewModel backupViewModel)
         {
-            _playerRepository = playerRepository;
-            _teamRepository = teamRepository;
-            
-            TeamManagementViewModel = new TeamManagementViewModel(_teamRepository);
-            PlayerDatabaseViewModel = new PlayerDatabaseViewModel(_playerRepository);
-            RosterViewModel = new RosterViewModel(_playerRepository, _teamRepository);
-            LineupViewModel = new LineupViewModel(_playerRepository);
+            TeamManagementViewModel = teamManagementViewModel;
+            PlayerDatabaseViewModel = playerDatabaseViewModel;
+            RosterViewModel = rosterViewModel;
+            LineupViewModel = lineupViewModel;
+            BackupViewModel = backupViewModel;
             
             _currentViewModel = TeamManagementViewModel;
 
@@ -34,6 +35,7 @@ namespace FloorballCoach.ViewModels
             ShowPlayerDatabaseCommand = new RelayCommand(_ => CurrentViewModel = PlayerDatabaseViewModel);
             ShowRosterCommand = new RelayCommand(_ => CurrentViewModel = RosterViewModel);
             ShowLineupCommand = new RelayCommand(_ => CurrentViewModel = LineupViewModel);
+            ShowBackupCommand = new RelayCommand(_ => CurrentViewModel = BackupViewModel);
         }
 
         private async void OnTeamChanged(object? sender, Team? team)
@@ -53,10 +55,12 @@ namespace FloorballCoach.ViewModels
         public PlayerDatabaseViewModel PlayerDatabaseViewModel { get; }
         public RosterViewModel RosterViewModel { get; }
         public LineupViewModel LineupViewModel { get; }
+        public BackupViewModel BackupViewModel { get; }
 
         public ICommand ShowTeamManagementCommand { get; }
         public ICommand ShowPlayerDatabaseCommand { get; }
         public ICommand ShowRosterCommand { get; }
         public ICommand ShowLineupCommand { get; }
+        public ICommand ShowBackupCommand { get; }
     }
 }
