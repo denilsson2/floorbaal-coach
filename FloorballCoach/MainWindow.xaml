@@ -12,6 +12,9 @@
     
     <Window.Resources>
         <!-- DataTemplates for ViewModels -->
+        <DataTemplate DataType="{x:Type vm:TeamManagementViewModel}">
+            <views:TeamManagementView/>
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:PlayerDatabaseViewModel}">
             <views:PlayerDatabaseView/>
         </DataTemplate>
@@ -68,15 +71,19 @@
                           VerticalAlignment="Center"
                           Margin="10,0,30,0"/>
                 
-                <Button Content="Player Database" 
+                <Button Content="Lag" 
+                        Style="{StaticResource NavigationButtonStyle}"
+                        Command="{Binding ShowTeamManagementCommand}"/>
+                
+                <Button Content="Spelardatabas" 
                         Style="{StaticResource NavigationButtonStyle}"
                         Command="{Binding ShowPlayerDatabaseCommand}"/>
                 
-                <Button Content="Roster" 
+                <Button Content="Trupp" 
                         Style="{StaticResource NavigationButtonStyle}"
                         Command="{Binding ShowRosterCommand}"/>
                 
-                <Button Content="Lineup" 
+                <Button Content="Uppställning" 
                         Style="{StaticResource NavigationButtonStyle}"
                         Command="{Binding ShowLineupCommand}"/>
             </StackPanel>

@@ -91,6 +91,9 @@ namespace FloorballCoach.Views
 
         private void RosterPlayerCard_Drop(object sender, DragEventArgs e)
         {
+            // Drag-and-drop reordering temporarily disabled in multi-team version
+            // Will be re-implemented with team-specific ordering in future update
+            /*
             if (sender is System.Windows.Controls.Border dropTarget && 
                 dropTarget.DataContext is PlayerCardViewModel targetPlayer &&
                 e.Data.GetData(typeof(PlayerCardViewModel)) is PlayerCardViewModel draggedPlayer &&
@@ -102,6 +105,7 @@ namespace FloorballCoach.Views
                 // Reorder players
                 viewModel.ReorderPlayers(draggedPlayer, targetPlayer);
             }
+            */
             
             _isDragging = false;
         }

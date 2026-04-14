@@ -52,12 +52,14 @@ public partial class App : Application
 
         // Register repositories
         services.AddScoped<IPlayerRepository, PlayerRepository>();
+        services.AddScoped<ITeamRepository, TeamRepository>();
 
         // Register services
         services.AddTransient<DatabaseSeeder>();
 
         // Register ViewModels
         services.AddTransient<MainViewModel>();
+        services.AddTransient<TeamManagementViewModel>();
         services.AddTransient<PlayerDatabaseViewModel>();
         services.AddTransient<RosterViewModel>();
         services.AddTransient<LineupViewModel>();

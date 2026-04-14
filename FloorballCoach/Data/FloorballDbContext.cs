@@ -11,6 +11,8 @@ namespace FloorballCoach.Data
     public class FloorballDbContext : DbContext
     {
         public DbSet<Player> Players { get; set; }
+        public DbSet<Team> Teams { get; set; }
+        public DbSet<TeamRoster> TeamRosters { get; set; }
         public DbSet<Line> Lines { get; set; }
         public DbSet<MatchSetup> MatchSetups { get; set; }
         public DbSet<MatchStatistics> MatchStatistics { get; set; }
@@ -51,6 +53,24 @@ namespace FloorballCoach.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Configure Team-Player many-to-many relationship through TeamRoster
+            modelBuilder.Entity<TeamRoster>()
+                .HasOne(tr => tr.Team)
+                .WithMany(t => t.TeamRosters)
+                .HasForeignKey(tr => tr.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<TeamRoster>()
+                .HasOne(tr => tr.Player)
+                .WithMany()
+                .HasForeignKey(tr => tr.PlayerId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Ensure unique Team-Player combination
+            modelBuilder.Entity<TeamRoster>()
+                .HasIndex(tr => new { tr.TeamId, tr.PlayerId })
+                .IsUnique();
 
             // Configure Line relationships
             modelBuilder.Entity<Line>()

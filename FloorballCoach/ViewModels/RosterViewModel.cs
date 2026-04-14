@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using FloorballCoach.Data;
 using FloorballCoach.Helpers;
@@ -10,11 +11,13 @@ using FloorballCoach.Models;
 namespace FloorballCoach.ViewModels
 {
     /// <summary>
-    /// ViewModel for managing the team roster
+    /// ViewModel for managing the team roster - supports multiple teams
     /// </summary>
     public class RosterViewModel : ViewModelBase
     {
         private readonly IPlayerRepository _playerRepository;
+        private readonly ITeamRepository _teamRepository;
+        private Team? _currentTeam;
         private ObservableCollection<PlayerCardViewModel> _allPlayers;
         private ObservableCollection<PlayerCardViewModel> _availablePlayers;
         private ObservableCollection<PlayerCardViewModel> _rosterPlayers;
@@ -23,9 +26,10 @@ namespace FloorballCoach.ViewModels
         private ObservableCollection<PlayerCardViewModel> _centers;
         private ObservableCollection<PlayerCardViewModel> _forwards;
 
-        public RosterViewModel(IPlayerRepository playerRepository)
+        public RosterViewModel(IPlayerRepository playerRepository, ITeamRepository teamRepository)
         {
             _playerRepository = playerRepository;
+            _teamRepository = teamRepository;
             _allPlayers = new ObservableCollection<PlayerCardViewModel>();
             _availablePlayers = new ObservableCollection<PlayerCardViewModel>();
             _rosterPlayers = new ObservableCollection<PlayerCardViewModel>();
@@ -34,21 +38,54 @@ namespace FloorballCoach.ViewModels
             _centers = new ObservableCollection<PlayerCardViewModel>();
             _forwards = new ObservableCollection<PlayerCardViewModel>();
 
-            AddToRosterCommand = new RelayCommand(async player => await AddToRoster(player as PlayerCardViewModel));
-            RemoveFromRosterCommand = new RelayCommand(async player => await RemoveFromRoster(player as PlayerCardViewModel));
+            AddToRosterCommand = new RelayCommand(async player => await AddToRoster(player as PlayerCardViewModel), _ => HasCurrentTeam);
+            RemoveFromRosterCommand = new RelayCommand(async player => await RemoveFromRoster(player as PlayerCardViewModel), _ => HasCurrentTeam);
             EditPlayerCommand = new RelayCommand(async player => await EditPlayer(player as PlayerCardViewModel));
             DeletePlayerCommand = new RelayCommand(async player => await DeletePlayer(player as PlayerCardViewModel));
-            SaveRosterCommand = new RelayCommand(async _ => await SaveRoster());
-            RefreshCommand = new RelayCommand(async _ => await LoadPlayers());
+            SaveRosterCommand = new RelayCommand(async _ => await SaveRoster(), _ => HasCurrentTeam);
+            RefreshCommand = new RelayCommand(async _ => await LoadPlayers(), _ => HasCurrentTeam);
         }
 
         public async Task InitializeAsync()
         {
-            if (!_allPlayers.Any())
+            if (_currentTeam != null && !_allPlayers.Any())
             {
                 await LoadPlayers();
             }
         }
+
+        /// <summary>
+        /// Set the current team to manage - called when team selection changes
+        /// </summary>
+        public async Task SetCurrentTeamAsync(Team? team)
+        {
+            _currentTeam = team;
+            OnPropertyChanged(nameof(HasCurrentTeam));
+            OnPropertyChanged(nameof(CurrentTeamName));
+            
+            if (team != null)
+            {
+                await LoadPlayers();
+            }
+            else
+            {
+                ClearCollections();
+            }
+        }
+
+        private void ClearCollections()
+        {
+            AllPlayers.Clear();
+            AvailablePlayers.Clear();
+            RosterPlayers.Clear();
+            Goalkeepers.Clear();
+            Defenders.Clear();
+            Centers.Clear();
+            Forwards.Clear();
+        }
+
+        public bool HasCurrentTeam => _currentTeam != null;
+        public string CurrentTeamName => _currentTeam?.Name ?? "Inget lag valt";
 
         public ObservableCollection<PlayerCardViewModel> AllPlayers
         {
@@ -101,26 +138,32 @@ namespace FloorballCoach.ViewModels
 
         private async Task LoadPlayers()
         {
-            var players = await _playerRepository.GetActivePlayersAsync();
+            if (_currentTeam == null) return;
 
-            AllPlayers.Clear();
-            AvailablePlayers.Clear();
-            RosterPlayers.Clear();
-            Goalkeepers.Clear();
-            Defenders.Clear();
-            Centers.Clear();
-            Forwards.Clear();
-
-            foreach (var player in players.OrderBy(p => p.RosterOrder))
+            try
             {
-                var playerCard = new PlayerCardViewModel(player);
-                AllPlayers.Add(playerCard);
+                // Load players in this team's roster
+                var rosterPlayers = await _teamRepository.GetTeamRosterAsync(_currentTeam.Id);
+                
+                // Load available players (not in this team's roster)
+                var availablePlayers = await _teamRepository.GetAvailablePlayersAsync(_currentTeam.Id);
 
-                if (player.IsInRoster)
+                AllPlayers.Clear();
+                AvailablePlayers.Clear();
+                RosterPlayers.Clear();
+                Goalkeepers.Clear();
+                Defenders.Clear();
+                Centers.Clear();
+                Forwards.Clear();
+
+                // Add roster players
+                foreach (var player in rosterPlayers.OrderBy(p => p.Position).ThenBy(p => p.LastName))
                 {
+                    var playerCard = new PlayerCardViewModel(player);
+                    AllPlayers.Add(playerCard);
                     RosterPlayers.Add(playerCard);
                     
-                    // Group by position in the order: Goalkeepers, Defenders, Centers, Forwards
+                    // Group by position
                     switch (player.Position)
                     {
                         case Position.Goalkeeper:
@@ -137,43 +180,60 @@ namespace FloorballCoach.ViewModels
                             break;
                     }
                 }
-                else
+
+                // Add available players
+                foreach (var player in availablePlayers.OrderBy(p => p.LastName))
                 {
-                    // Only show players not in roster as available
+                    var playerCard = new PlayerCardViewModel(player);
                     AvailablePlayers.Add(playerCard);
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fel vid laddning av spelartrupp: {ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private async Task AddToRoster(PlayerCardViewModel? playerCard)
         {
-            if (playerCard == null)
+            if (playerCard == null || _currentTeam == null)
                 return;
 
-            playerCard.Player.IsInRoster = true;
-            
-            // Set RosterOrder based on current count in that position
-            var playersInPosition = await _playerRepository.GetActivePlayersAsync();
-            var maxOrder = playersInPosition
-                .Where(p => p.IsInRoster && p.Position == playerCard.Player.Position)
-                .Select(p => p.RosterOrder)
-                .DefaultIfEmpty(0)
-                .Max();
-            
-            playerCard.Player.RosterOrder = maxOrder + 1;
-            
-            await _playerRepository.UpdatePlayerAsync(playerCard.Player);
-            await LoadPlayers();
+            try
+            {
+                await _teamRepository.AddPlayerToRosterAsync(_currentTeam.Id, playerCard.Id);
+                await LoadPlayers();
+                MessageBox.Show($"{playerCard.FullName} har lagts till i {_currentTeam.Name}.", "Spelare tillagd", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fel vid tillägg av spelare: {ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private async Task RemoveFromRoster(PlayerCardViewModel? playerCard)
         {
-            if (playerCard == null)
+            if (playerCard == null || _currentTeam == null)
                 return;
 
-            playerCard.Player.IsInRoster = false;
-            await _playerRepository.UpdatePlayerAsync(playerCard.Player);
-            await LoadPlayers();
+            var result = MessageBox.Show(
+                $"Är du säker på att du vill ta bort {playerCard.FullName} från {_currentTeam.Name}?\n\nSpelaren finns kvar i databasen och kan läggas till igen.",
+                "Bekräfta borttagning",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            try
+            {
+                await _teamRepository.RemovePlayerFromRosterAsync(_currentTeam.Id, playerCard.Id);
+                await LoadPlayers();
+                MessageBox.Show($"{playerCard.FullName} har tagits bort från {_currentTeam.Name}.", "Spelare borttagen", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fel vid borttagning av spelare: {ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         private async Task EditPlayer(PlayerCardViewModel? playerCard)
@@ -181,11 +241,18 @@ namespace FloorballCoach.ViewModels
             if (playerCard == null)
                 return;
 
-            var dialog = new Views.AddEditPlayerDialog(playerCard.Player);
-            if (dialog.ShowDialog() == true && dialog.Player != null)
+            try
             {
-                await _playerRepository.UpdatePlayerAsync(dialog.Player);
-                await LoadPlayers(); // Reload to ensure player appears in correct position group
+                var dialog = new Views.AddEditPlayerDialog(playerCard.Player);
+                if (dialog.ShowDialog() == true && dialog.Player != null)
+                {
+                    await _playerRepository.UpdatePlayerAsync(dialog.Player);
+                    await LoadPlayers();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Fel vid uppdatering av spelare: {ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -194,87 +261,36 @@ namespace FloorballCoach.ViewModels
             if (playerCard == null)
                 return;
 
-            var result = System.Windows.MessageBox.Show(
-                $"Are you sure you want to delete {playerCard.FullName} from the database?\n\nThis action cannot be undone.",
-                "Confirm Delete",
-                System.Windows.MessageBoxButton.YesNo,
-                System.Windows.MessageBoxImage.Warning);
+            var result = MessageBox.Show(
+                $"Är du säker på att du vill ta bort {playerCard.FullName} från databasen?\n\nSpelaren kommer tas bort från ALLA lag. Denna åtgärd kan inte ångras.",
+                "Bekräfta borttagning",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
 
-            if (result == System.Windows.MessageBoxResult.Yes)
+            if (result == MessageBoxResult.Yes)
             {
-                await _playerRepository.DeletePlayerAsync(playerCard.Id);
-                await LoadPlayers();
-                System.Windows.MessageBox.Show(
-                    $"{playerCard.FullName} has been deleted from the database.",
-                    "Player Deleted",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Information);
-            }
-        }
-
-        public async void ReorderPlayers(PlayerCardViewModel draggedPlayer, PlayerCardViewModel targetPlayer)
-        {
-            if (draggedPlayer == null || targetPlayer == null || draggedPlayer == targetPlayer)
-                return;
-
-            // Make sure they're in the same position group
-            if (draggedPlayer.Player.Position != targetPlayer.Player.Position)
-                return;
-
-            var collection = draggedPlayer.Player.Position switch
-            {
-                Position.Goalkeeper => Goalkeepers,
-                Position.Defender => Defenders,
-                Position.Center => Centers,
-                Position.Forward => Forwards,
-                _ => null
-            };
-
-            if (collection == null)
-                return;
-
-            int draggedIndex = collection.IndexOf(draggedPlayer);
-            int targetIndex = collection.IndexOf(targetPlayer);
-
-            if (draggedIndex == -1 || targetIndex == -1)
-                return;
-
-            // Reorder in the collection
-            collection.Move(draggedIndex, targetIndex);
-
-            // Update RosterOrder in database
-            for (int i = 0; i < collection.Count; i++)
-            {
-                collection[i].Player.RosterOrder = i;
-                await _playerRepository.UpdatePlayerAsync(collection[i].Player);
+                try
+                {
+                    await _playerRepository.DeletePlayerAsync(playerCard.Id);
+                    await LoadPlayers();
+                    MessageBox.Show(
+                        $"{playerCard.FullName} har tagits bort från databasen.",
+                        "Spelare borttagen",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Fel vid borttagning av spelare: {ex.Message}", "Fel", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 
         private async Task SaveRoster()
         {
-            try
-            {
-                // All changes are already saved when adding/removing players
-                // This is just a confirmation
-                System.Windows.MessageBox.Show(
-                    $"Roster saved successfully!\n\nTotal players in roster: {RosterPlayers.Count}\n" +
-                    $"Goalkeepers: {Goalkeepers.Count}\n" +
-                    $"Defenders: {Defenders.Count}\n" +
-                    $"Centers: {Centers.Count}\n" +
-                    $"Forwards: {Forwards.Count}",
-                    "Roster Saved",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Information);
-            }
-            catch (Exception ex)
-            {
-                System.Windows.MessageBox.Show(
-                    $"Error saving roster: {ex.Message}",
-                    "Error",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Error);
-            }
-            await Task.CompletedTask;
+            // This could be used for batch operations in the future
+            await LoadPlayers();
+            MessageBox.Show("Truppen har sparats!", "Sparat", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }
