@@ -12,6 +12,22 @@
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.5" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.5" />
+    
+    <!-- Add these packages when using SQL Server / Azure SQL -->
+    <!-- <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.5" /> -->
+    
+    <!-- Add this package when using PostgreSQL -->
+    <!-- <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.5" /> -->
+    
+    <!-- Add this package when using MySQL -->
+    <!-- <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" /> -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Copy appsettings.json to output directory -->
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

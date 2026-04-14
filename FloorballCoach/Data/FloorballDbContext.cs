@@ -6,6 +6,7 @@ namespace FloorballCoach.Data
 {
     /// <summary>
     /// Entity Framework DbContext for the floorball database
+    /// Supports multiple database providers through dependency injection
     /// </summary>
     public class FloorballDbContext : DbContext
     {
@@ -14,17 +15,37 @@ namespace FloorballCoach.Data
         public DbSet<MatchSetup> MatchSetups { get; set; }
         public DbSet<MatchStatistics> MatchStatistics { get; set; }
 
+        /// <summary>
+        /// Constructor for dependency injection with DbContextOptions
+        /// </summary>
+        public FloorballDbContext(DbContextOptions<FloorballDbContext> options) 
+            : base(options)
+        {
+        }
+
+        /// <summary>
+        /// Parameterless constructor for backward compatibility
+        /// Uses SQLite by default
+        /// </summary>
+        public FloorballDbContext()
+        {
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            // Creates the database in the AppData/Local folder
-            var appDataPath = Path.Combine(
-                System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-                "FloorballCoach");
+            // Only configure if not already configured (for backward compatibility)
+            if (!optionsBuilder.IsConfigured)
+            {
+                // Creates the database in the AppData/Local folder
+                var appDataPath = Path.Combine(
+                    System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
+                    "FloorballCoach");
 
-            Directory.CreateDirectory(appDataPath);
-            var dbPath = Path.Combine(appDataPath, "floorball.db");
+                Directory.CreateDirectory(appDataPath);
+                var dbPath = Path.Combine(appDataPath, "floorball.db");
 
-            optionsBuilder.UseSqlite($"Data Source={dbPath}");
+                optionsBuilder.UseSqlite($"Data Source={dbPath}");
+            }
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
