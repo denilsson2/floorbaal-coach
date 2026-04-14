@@ -22,6 +22,15 @@ obj/
 *.db-shm
 *.db-wal
 
+## Configuration files with secrets (add .local versions for local development)
+appsettings.Production.json
+appsettings.Local.json
+appsettings.*.local.json
+.env
+.env.local
+.env.production
+secrets.json
+
 ## Compiled files
 [Dd]ebug/
 [Rr]elease/
